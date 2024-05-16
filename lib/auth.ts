@@ -1,4 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+import bcrypt from "bcrypt";
 
 export const NEXT_AUTH_CONFIG = {
   providers: [
@@ -9,12 +12,42 @@ export const NEXT_AUTH_CONFIG = {
         password: { label: "password", type: "password", placeholder: "" },
       },
       async authorize(credentials: any) {
-        return {
-          id: "user1",
-          name: "asd",
-          userId: "asd",
-          email: "ramdomEmail",
-        };
+        const { username, password } = credentials;
+
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            username: username,
+          },
+        });
+        if (existingUser) {
+          const passwordValidation = await bcrypt.compare(
+            password,
+            existingUser.password
+          );
+          if (passwordValidation) {
+            return {
+              id: existingUser.id,
+              username: existingUser.username,
+            } as any;
+          }
+          return null;
+        }
+        try {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          const user = await prisma.user.create({
+            data: {
+              username: username,
+              password: hashedPassword,
+            },
+          });
+          return {
+            id: user.id,
+            username: user.username,
+          };
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
       },
     }),
   ],
