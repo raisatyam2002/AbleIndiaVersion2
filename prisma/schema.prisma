@@ -22,6 +22,7 @@ model User {
   CurrentCity String?
   userPoints Int?
   education Education?
+  skills Skills?
   
 }
 model Education{
@@ -34,4 +35,42 @@ model Education{
   endDate String
   userId Int @unique
   user User @relation(fields: [userId],references: [id])
+}
+model Skills{
+  skillid Int @id @default(autoincrement())
+  modeOfInternship String
+  portfolio Portfolio?
+  project Project[]
+  additonalDetails AdditonalDetails?
+  userId Int @unique
+  user User @relation(fields: [userId],references: [id])
+
+}
+model Portfolio{
+  id Int @id @default(autoincrement())
+  githubLink String?
+  leetCodeLink String?
+  figmaLink String?
+  skillId Int @unique
+  skill  Skills @relation(fields: [skillId],references: [skillid])
+}
+model Project{
+  id Int @id @default(autoincrement())
+  projectName String
+  skillUsed String[]
+  projectLink String?
+  description String?
+   skillId Int 
+  skill  Skills @relation(fields: [skillId],references: [skillid])
+  
+}
+model AdditonalDetails{
+  id Int @id @default(autoincrement())
+  linkedinLink String?
+  competitiveRank String?
+  POR String?
+  internship String?
+  skillId Int @unique
+  skill  Skills @relation(fields: [skillId],references: [skillid])
+
 }
